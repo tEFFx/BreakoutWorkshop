@@ -26,13 +26,8 @@ public class BrickSpawner : MonoBehaviour {
             }
         }
 	}
-
-    void Update() {
-        if ( Input.GetKeyDown ( KeyCode.R ) )
-            Reset ( );
-    }
 	
-    void Reset() {
+    public void Reset() {
         for ( int i = 0 ; i < m_Bricks.Length ; i++ ) {
             m_Bricks [ i ].SetActive ( true );
         }

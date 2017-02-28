@@ -3,21 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Ball : MonoBehaviour {
+    public static int score;
+    public static int lives;
+
     public SpriteRenderer sprite { get { return GetComponent<SpriteRenderer> ( ); } }
 
+    public GameObject gameOverText;
     public Paddle paddle;
     public float speed;
     public Vector3 startOffset;
 
+    public AudioClip bounceSfx;
+    public AudioClip respawnSfx;
+    public AudioClip startSfx;
+    public AudioClip dieSfx;
+
     private bool m_OnPaddle = true;
     private Vector2 m_Velocity;
 
+    public void Reset()
+    {
+        SetPaddle(true);
+        score = 0;
+        lives = 5;
+        gameOverText.SetActive(false);
+        gameObject.SetActive(true);
+    }
+
     void Start() {
-        SetPaddle ( true );
+        Reset();
     }
     
 	// Update is called once per frame
 	void Update () {
+        if (lives < 0)
+            return;
+
         if(m_OnPaddle && Input.GetMouseButtonDown ( 0 ) ) {
             SetPaddle ( false );
         }
@@ -28,23 +49,31 @@ public class Ball : MonoBehaviour {
             Vector3 collisionNormal;
             if ( Camera.main.GetComponent<CameraHelper> ( ).IsOutside ( sprite.bounds, out collisionNormal ) ) {
                 if ( Mathf.Approximately ( Vector3.Dot ( collisionNormal.normalized, Vector3.up ), 1 ) ) {
-                    SetPaddle ( true );
-                    Camera.main.GetComponent<CameraHelper> ( ).ShakeScreen ( 0.5f );
+                    if (lives > 0)
+                    {
+                        SetPaddle(true);
+                        Camera.main.GetComponent<CameraHelper>().ShakeScreen(0.5f);
+                    } else
+                    {
+                        gameOverText.SetActive(true);
+                        gameObject.SetActive(false);
+                    }
+                    lives--;
+                    PlayAudioClip(dieSfx);
                 } else {
                     transform.position += collisionNormal;
                     Bounce ( collisionNormal.normalized );
                     Camera.main.GetComponent<CameraHelper> ( ).ShakeScreen ( 0.1f );
+                    PlayAudioClip(bounceSfx, true);
                 }
             }
-
-            if ( Input.GetKeyDown ( KeyCode.R ) )
-                SetPaddle ( true );
         }
 	}
 
     void OnCollisionEnter2D(Collision2D coll) {
         Bounce ( coll.contacts [ 0 ].normal );
         Camera.main.GetComponent<CameraHelper> ( ).ShakeScreen ( 0.25f );
+        PlayAudioClip(bounceSfx, true);
     }
 
     void Bounce(Vector2 normal) {
@@ -69,8 +98,17 @@ public class Ball : MonoBehaviour {
                 direction.x = -direction.x;
 
             SetDirection ( direction );
+            PlayAudioClip(startSfx);
         } else {
             transform.localPosition = startOffset;
+            PlayAudioClip(respawnSfx);
         }
+    }
+
+    void PlayAudioClip(AudioClip clip, bool randomPitch = false)
+    {
+        AudioSource source = GetComponent<AudioSource>();
+        source.pitch = randomPitch ? Random.Range(0.5f, 1f) : 1;
+        source.PlayOneShot(clip, 1);
     }
 }

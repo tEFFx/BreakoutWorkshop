@@ -7,6 +7,9 @@ public class Paddle : MonoBehaviour {
     public float sensitivity;
 
 	void Update () {
+        if (PauseMenu.isOpen)
+            return;
+
         transform.position += Vector3.right * Input.GetAxis ( "Mouse X" ) * sensitivity;
 
         Vector3 depenetrationDir;

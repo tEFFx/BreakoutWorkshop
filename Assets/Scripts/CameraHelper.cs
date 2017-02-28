@@ -11,8 +11,6 @@ public class CameraHelper : MonoBehaviour {
     private Bounds m_CameraBounds;
 
     void Awake() {
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
         m_CameraPos = transform.position;
     }
 
